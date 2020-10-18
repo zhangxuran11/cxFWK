@@ -4,6 +4,7 @@
             "name": "Linux",
             "includePath": [
                 "${workspaceFolder}/**",
+                "${workspaceFolder}/inc",
                 "${BOOST_INC}"
             ],
             "defines": [],
