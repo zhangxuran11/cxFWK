@@ -17,6 +17,8 @@
 #include <memory>
 #include <functional>
 
+#include "EchoClient.h"
+
 class EchoServer{
     class Session
     : public std::enable_shared_from_this<Session>{

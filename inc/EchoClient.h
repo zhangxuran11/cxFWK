@@ -9,7 +9,7 @@ class EchoClient{
     public:
         EchoClient():mSocket(mIoContext){
         }
-        int connect(const std::string& serverIp,uint16_t port){
+        int connect(const char* serverIp,uint16_t port){
             boost::system::error_code ec;
             mSocket.connect(boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(serverIp),port),ec);
             if( ec )
@@ -17,6 +17,14 @@ class EchoClient{
             else
                 return 0;
         }
+        int connect(const char* eurekaIp,uint16_t eurekaPort,const char* serviceName){
+            mEurekaIp = eurekaIp;
+            mEurekaPort = eurekaPort;
+            mServiceName = serviceName;
+            return connect();
+        }
+        
+    
         ~EchoClient(){
             mSocket.close();
         }
@@ -55,6 +63,31 @@ class EchoClient{
             return res.get_child("content");
         }
     private:
+        int connect(){
+            boost::system::error_code ec;
+            mSocket.connect(boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(mEurekaIp),mEurekaPort),ec);
+            if( ec )
+                return -1;
+            boost::property_tree::ptree pt;
+            pt.put("service name",mServiceName);
+            pt = request("query service",pt);
+            if(pt.count("service address") < 1){
+                return -1;
+            }
+            std::string serviceAddr = pt.get<std::string>("service address");
+            char ip[20];
+            uint16_t port;
+            sscanf(serviceAddr.c_str(),"%s:%hu",ip,&port);
+            mSocket.connect(boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(ip),port),ec);
+            if( ec )
+                return -1;
+            
+            return 0;
+        }
+    private:
+        std::string mEurekaIp;
+        uint16_t mEurekaPort;
+        std::string mServiceName;
         boost::asio::io_context mIoContext;
         boost::asio::ip::tcp::socket mSocket;
         std::vector<char> mRecvBuffer;
