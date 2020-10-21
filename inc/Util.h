@@ -7,8 +7,8 @@
 namespace cxFWK{
     class Util{
         Util(){}
-        public:
-            const std::string jsonToString(const boost::property_tree::ptree& pt){
+    public:
+        static const std::string jsonToString(const boost::property_tree::ptree& pt){
             std::stringstream ss;
             boost::property_tree::json_parser::write_json(ss,pt);
             return ss.str();

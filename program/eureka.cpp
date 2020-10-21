@@ -5,7 +5,7 @@
 #include "Util.h"
 static std::map<std::string,boost::property_tree::ptree> services;
 static boost::property_tree::ptree registerService(const boost::property_tree::ptree& pt){
-    std::cout<<jsonToString(pt)<<std::endl;
+    std::cout<<cxFWK::Util::jsonToString(pt)<<std::endl;
     boost::property_tree::ptree res_content;
     try{
         std::string&& service_name = pt.get<std::string>("service name");
@@ -13,12 +13,12 @@ static boost::property_tree::ptree registerService(const boost::property_tree::p
         res_content.put("ack","ok"); 
     }
     catch (...){
-        res_content.put("ack","error");    
+        res_content.put("ack","error");
     }
     return res_content;
 }
 static boost::property_tree::ptree queryServices(const boost::property_tree::ptree& pt){
-    std::cout<<jsonToString(pt)<<std::endl;
+    std::cout<<cxFWK::Util::jsonToString(pt)<<std::endl;
     boost::property_tree::ptree pt_servers;
     for(auto it = services.begin();it != services.end();it++)
     {
@@ -27,7 +27,7 @@ static boost::property_tree::ptree queryServices(const boost::property_tree::ptr
     return pt_servers;
 }
 static boost::property_tree::ptree queryService(const boost::property_tree::ptree& pt){
-    std::cout<<jsonToString(pt)<<std::endl;
+    std::cout<<cxFWK::Util::jsonToString(pt)<<std::endl;
     try{
         std::string service_name = pt.get<std::string>("service name");
         if(services.count(service_name) > 0){

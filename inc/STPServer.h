@@ -73,7 +73,7 @@ namespace cxFWK{
                                     *reinterpret_cast<std::uint32_t*>(mSendBuffer.data()) = sstream.str().size();
                                     memcpy(mSendBuffer.data()+4,sstream.str().data(),sstream.str().size());
                                     boost::asio::async_write(mSocket,boost::asio::buffer(mSendBuffer.data(),mSendBuffer.size()),
-                                        [this,self](boost::system::error_code ec, std::size_t length){
+                                        [this,self](boost::system::error_code ec, std::size_t ){
                                             if(!ec){
                                                 doRead();
                                             }
@@ -86,8 +86,8 @@ namespace cxFWK{
                     });
                 }
             private:
-                boost::asio::ip::tcp::socket mSocket;
                 STPServer& mServer;
+                boost::asio::ip::tcp::socket mSocket;
                 std::vector<char> mRecvBuffer;
                 std::vector<char> mSendBuffer;
         };
