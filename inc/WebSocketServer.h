@@ -18,7 +18,7 @@ namespace cxFWK{
                     //std::cout<<"~Session()"<<std::endl;
                 }
                 void run(){
-                    doRead();
+                    //doRead();
                 }
             private:
                 void doRead(){
@@ -75,6 +75,7 @@ namespace cxFWK{
                 }
             private:
                 WebSocketServer& mServer;
+                
                 boost::beast::websocket mWs;
                 std::vector<char> mRecvBuffer;
                 std::vector<char> mSendBuffer;
@@ -87,6 +88,7 @@ namespace cxFWK{
         void run(){
             doAccept();
             mIoContext.run();
+            
         }
         void doAccept(){
             mAcceptor.async_accept(

@@ -1,5 +1,5 @@
 #include <sstream>
-#include "EchoServer.h"
+#include "STPServer.h"
 #include <string>
 #include <map>
 #include "Util.h"
@@ -38,7 +38,7 @@ static boost::property_tree::ptree queryService(const boost::property_tree::ptre
     return boost::property_tree::ptree();
 }
 int main(){
-    EchoServer s(8800);
+    cxFWK::STPServer s(8800);
     s.registerProcesser("register service",registerService);
     s.registerProcesser("query services",queryServices);
     s.registerProcesser("query service",queryService);

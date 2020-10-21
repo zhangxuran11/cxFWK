@@ -3,9 +3,9 @@
         {
             "name": "Linux",
             "includePath": [
+                "../boost_1_74_0",
                 "${workspaceFolder}/**",
-                "${workspaceFolder}/inc",
-                "${BOOST_INC}"
+                "${workspaceFolder}/inc"
             ],
             "defines": [],
             "compilerPath": "/usr/bin/gcc",

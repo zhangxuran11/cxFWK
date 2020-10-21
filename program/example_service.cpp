@@ -1,9 +1,9 @@
 #include <iostream>
 #include <sstream>
-#include "EchoClient.h"
+#include "STPClient.h"
 #include "Util.h"
 int main(){
-    EchoClient c;
+    cxFWK::STPClient c;
     
     const char* ip = "127.0.0.1";
     uint16_t port = 8800;
