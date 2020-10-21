@@ -17,7 +17,7 @@ INCLUDEPATH += $(BOOST_DIR) \
                 ../inc/
 
 SOURCES += \
-        ../program/eureka.cpp
+    ../program/example_service.cpp
 
 HEADERS += \
     ../inc/STPClient.h \

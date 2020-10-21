@@ -3,13 +3,16 @@
 #include <boost/asio.hpp>
 namespace cxFWK{
     class WebSocketServer{
-        boost::asio::io_context mIoContext;
-        boost::asio::ip::tcp::acceptor mAcceptor;
+
+
+
+    public:
 
         class Session
         : public std::enable_shared_from_this<Session>{
-            
-            public:
+            friend class WebSocketServer;
+        public:
+        private:
                 Session(WebSocketServer &server,boost::asio::ip::tcp::socket& socket):mServer(server),mWs(std::move(socket)){
                     //std::cout<<"Session()"<<std::endl;
                 }
@@ -17,13 +20,26 @@ namespace cxFWK{
                 ~Session(){
                     //std::cout<<"~Session()"<<std::endl;
                 }
-                void run(){
-                    //doRead();
+                void run()
+                {
+                    // Accept the websocket handshake
+                    auto self = shared_from_this();
+                    mWs.async_accept([self,this](boost::beast::error_code const& ec){
+                        if(!ec)
+                            doRead();
+                    });
                 }
-            private:
+
                 void doRead(){
                     auto self = shared_from_this();
-                    mRecvBuffer.resize(4);
+                    mWs.async_read(mRecvBuffer,
+                        [self,this](boost::beast::error_code const& ec,std::size_t bytes_written){
+                        if(!ec){
+                            mRecvBuffer.
+                            mOnread(*this,boost::beast:: mRecvBuffer);
+                        }
+
+                    });
                     boost::asio::async_read(mSocket,boost::asio::buffer(mRecvBuffer, mRecvBuffer.size()),
                     [this, self](boost::system::error_code ec, std::size_t length)
                     {
@@ -76,20 +92,23 @@ namespace cxFWK{
             private:
                 WebSocketServer& mServer;
                 
-                boost::beast::websocket mWs;
-                std::vector<char> mRecvBuffer;
+                boost::beast::websocket::stream<boost::asio::ip::tcp::socket> mWs;
+                boost::beast::multi_buffer mRecvBuffer;
                 std::vector<char> mSendBuffer;
         };
 
-        public:
-            WebSocketServer(uint16_t port):mAcceptor(mIoContext, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)){
+
+        WebSocketServer(uint16_t port):mAcceptor(mIoContext, boost::asio::ip::tcp::endpoint(boost::asio::ip::tcp::v4(), port)),mOnread([](Session&,uint8_t* ,size_t  ){}){
                 mAcceptor.set_option(boost::asio::socket_base::reuse_address(true));
             }
         void run(){
             doAccept();
             mIoContext.run();
-            
         }
+        void setOnRead(std::function<void(Session&,uint8_t* ,size_t  )> onRead){
+            mOnread = std::move(onRead);
+        }
+    private:
         void doAccept(){
             mAcceptor.async_accept(
             [this](boost::system::error_code ec, boost::asio::ip::tcp::socket socket)
@@ -102,6 +121,9 @@ namespace cxFWK{
             });
 
         }
+        boost::asio::io_context mIoContext;
+        boost::asio::ip::tcp::acceptor mAcceptor;
+        std::function<void(Session&,uint8_t* ,size_t  )> mOnread;
 
     };
 
