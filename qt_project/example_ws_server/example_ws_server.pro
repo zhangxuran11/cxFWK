@@ -14,13 +14,7 @@ unix {
 }
 
 INCLUDEPATH += $(BOOST_DIR) \
-                ../inc/
-
-HEADERS += \
-    ../inc/STPClient.h \
-    ../inc/STPServer.h \
-    ../inc/Util.h \
-    ../inc/WebSocketServer.h
+                ../../cxFWK
 
 SOURCES += \
-        ../program/example_ws_server.cpp
+        ../../example/example_ws_server.cpp
