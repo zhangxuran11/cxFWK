@@ -16,11 +16,11 @@ unix {
 INCLUDEPATH += $(BOOST_DIR) \
                 ../inc/
 
-SOURCES += \
-    ../program/example_service.cpp
-
 HEADERS += \
     ../inc/STPClient.h \
     ../inc/STPServer.h \
     ../inc/Util.h \
     ../inc/WebSocketServer.h
+
+SOURCES += \
+        ../program/example_ws_server.cpp

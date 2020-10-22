@@ -16,11 +16,13 @@ unix {
 INCLUDEPATH += $(BOOST_DIR) \
                 ../inc/
 
-SOURCES += \
-        ../program/eureka.cpp
-
 HEADERS += \
     ../inc/STPClient.h \
     ../inc/STPServer.h \
     ../inc/Util.h \
     ../inc/WebSocketServer.h
+
+SOURCES += \
+        ../program/eureka.cpp
+
+
