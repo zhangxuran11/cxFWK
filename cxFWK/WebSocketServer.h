@@ -5,12 +5,52 @@
 #include <boost/beast/websocket.hpp>
 #include <boost/asio.hpp>
 #include <iostream>
+#include <string>
+#include <list>
 namespace cxFWK{
     class WebSocketServer{
     public:
         class Session
         : public std::enable_shared_from_this<Session>{
             friend class WebSocketServer;
+            enum MessageFormat{
+                Text,
+                Binary
+            };
+            struct Message{
+                MessageFormat format;
+                std::vector<uint8_t> buffer;
+                Message(const std::string& text):format(Text),buffer(text.begin(),text.end()){
+                }
+                Message(const uint8_t* data,size_t len):format(Binary),buffer(len){
+                    memcpy(buffer.data(),data,len);
+                }
+            };
+            void write(void){
+                Message* msg = mMessageQueue.front();
+                auto self = shared_from_this();
+                if(msg->format == Text){
+                    mWs.text(true);
+                }
+                else{//binary
+                    mWs.binary(true);
+                }
+                mWs.async_write(boost::asio::buffer(msg->buffer.data(),msg->buffer.size()),
+                    [self,this](boost::beast::error_code const& ec,std::size_t ){
+                    if(!ec){
+                        Message* msg = mMessageQueue.front();
+                        delete msg;
+                        mMessageQueue.pop_front();
+                        if(mMessageQueue.size() > 0)
+                            write();
+
+                    }else{
+                        mServer.mOnDisConnected(*this);
+                    }
+                });
+
+            }
+
         public:
                 Session(WebSocketServer &server,boost::asio::ip::tcp::socket& socket):mServer(server),mWs(std::move(socket)){
                     std::cout<<"Session()"<<std::endl;
@@ -18,22 +58,23 @@ namespace cxFWK{
 
                 ~Session(){
                     std::cout<<"~Session()"<<std::endl;
+                    while(auto msg = mMessageQueue.front()){
+                        delete msg;
+                        mMessageQueue.pop_front();
+                    }
                 }
-                void write(std::string text){
-                    auto self = shared_from_this();
-                    auto boost::beast::bu
-                    mWs.async_write(mRecvBuffer,
-                        [self,this](boost::beast::error_code const& ec,std::size_t bytes_written){
-                        if(!ec){
-                            std::vector<uint8_t> buffer(bytes_written);
-                            boost::asio::buffer_copy(boost::asio::mutable_buffer(buffer.data(),bytes_written),mRecvBuffer.data());
-                            mServer.mOnread(*this,buffer.data(), bytes_written);
-                            doRead();
-                        }else{
-                            mServer.mOnDisConnected(*this);
-                        }
-                    });
+                void write(const std::string& text){
 
+                    mMessageQueue.push_back(new Message(text));
+                    if(mMessageQueue.size() == 1){
+                        write();
+                    }
+                }
+                void write(const uint8_t* data,size_t len){
+                    mMessageQueue.push_back(new Message(data,len));
+                    if(mMessageQueue.size() == 1){
+                        write();
+                    }
                 }
         private:
                 void run()
@@ -68,6 +109,7 @@ namespace cxFWK{
                 boost::beast::websocket::stream<boost::asio::ip::tcp::socket> mWs;
                 boost::beast::multi_buffer mRecvBuffer;
                 std::vector<uint8_t> mSendBuffer;
+                std::list<Message*> mMessageQueue;
         };
 
 
