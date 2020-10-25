@@ -2,8 +2,7 @@
 #define ECHO_SERVER_H
 #include <vector>
 #include <map>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
+#include "Json.h"
 #include <boost/date_time.hpp>
 #include <boost/foreach.hpp>
 
@@ -48,30 +47,26 @@ namespace cxFWK{
                             [this, self](boost::system::error_code ec, std::size_t length)
                             {
                                 if (!ec && length > 0){
-                                    boost::property_tree::ptree pt;
-                                    std::stringstream sstream(std::string(mRecvBuffer.data(),mRecvBuffer.size()));
-                                    boost::property_tree::json_parser::read_json(sstream, pt);
+                                    Json json(std::string(mRecvBuffer.data(),mRecvBuffer.size()));
                                     std::string cmd;
-                                    try{
-                                        cmd = pt.get<std::string>("topic");
+                                    if(json.hasKey("topic")){
+                                        cmd = json.get("topic","");
                                     }
-                                    catch (boost::exception& e){
-                                        std::cout<<boost::diagnostic_information(e)<<std::endl;
+                                    else {
+                                        std::cout<<"no topic key"<<std::endl;
                                     }
-                                    boost::property_tree::ptree res;
+                                    Json res;
                                     if(mServer.mProcesserSet.count(cmd) > 0){
-                                        res.put_child("content",std::move(mServer.mProcesserSet[cmd](pt.get_child("content"))));
+                                        res.put("content",std::move(mServer.mProcesserSet[cmd](json.get("content",Json()))));
                                     }
                                     else{
-                                        res.put_child("content",std::move(boost::property_tree::ptree()));
+                                        res.put("content",Json());
                                     }
-                                    
-                                    sstream.str("");
-                                    std::stringstream ss;
-                                    boost::property_tree::json_parser::write_json(sstream,res);
-                                    mSendBuffer.resize(sstream.str().size()+4);
-                                    *reinterpret_cast<std::uint32_t*>(mSendBuffer.data()) = sstream.str().size();
-                                    memcpy(mSendBuffer.data()+4,sstream.str().data(),sstream.str().size());
+                                    std::string res_str = res.toString();
+
+                                    mSendBuffer.resize(res_str.size()+4);
+                                    *reinterpret_cast<std::uint32_t*>(mSendBuffer.data()) = res_str.size();
+                                    memcpy(mSendBuffer.data()+4,res_str.data(),res_str.size());
                                     boost::asio::async_write(mSocket,boost::asio::buffer(mSendBuffer.data(),mSendBuffer.size()),
                                         [this,self](boost::system::error_code ec, std::size_t ){
                                             if(!ec){
@@ -111,7 +106,7 @@ namespace cxFWK{
         uint16_t port()const {
             return mAcceptor.local_endpoint().port();
         }
-        void registerProcesser(const std::string& cmd,std::function<boost::property_tree::ptree(const boost::property_tree::ptree&)> processer){
+        void registerProcesser(const std::string& cmd,std::function<Json(const Json&)> processer){
             mProcesserSet[cmd] = processer;
         }
         void run(){
@@ -123,7 +118,7 @@ namespace cxFWK{
         boost::asio::ip::tcp::acceptor mAcceptor;
         std::vector<char> mRecvBuffer;
         std::vector<char> mSendBuffer;
-        std::map<std::string,std::function<boost::property_tree::ptree (const boost::property_tree::ptree&)> > mProcesserSet;
+        std::map<std::string,std::function<Json (const Json&)> > mProcesserSet;
     };
 }
 #endif  //ECHO_SERVER_H

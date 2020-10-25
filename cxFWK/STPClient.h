@@ -3,8 +3,7 @@
 #include <string>
 #include <sstream>
 #include <boost/asio.hpp>
-#include <boost/property_tree/ptree.hpp>
-#include <boost/property_tree/json_parser.hpp>
+#include "Json.h"
 namespace cxFWK{
     class STPClient{
         public:
@@ -28,39 +27,38 @@ namespace cxFWK{
             ~STPClient(){
                 mSocket.close();
             }
-            boost::property_tree::ptree request(const std::string& topic,const boost::property_tree::ptree& pt){
+            Json request(const std::string& topic,const Json& json){
                 std::stringstream ss;
-                boost::property_tree::ptree root;
+                Json root;
                 root.put("topic",topic);
-                root.put_child("content",pt);
-                boost::property_tree::json_parser::write_json(ss,root);
+                root.put("content",json);
+                std::string root_str = root.toString();
                 boost::system::error_code ec;
-                mSendBuffer.resize(ss.str().size()+4);
-                *reinterpret_cast<uint32_t*>(mSendBuffer.data()) = ss.str().size();
-                memcpy(mSendBuffer.data()+4,ss.str().data(),ss.str().size());
+                mSendBuffer.resize(root_str.size()+4);
+                *reinterpret_cast<uint32_t*>(mSendBuffer.data()) = root_str.size();
+                memcpy(mSendBuffer.data()+4,root_str.data(),root_str.size());
                 boost::asio::write(mSocket,boost::asio::buffer(mSendBuffer,mSendBuffer.size()),ec);
                 if(ec)
                 {
-                    return boost::property_tree::ptree();
+                    return Json();
                 }
                 mRecvBuffer.resize(4);
                 boost::asio::read(mSocket,boost::asio::buffer(mRecvBuffer,mRecvBuffer.size()),ec);
                 if(ec)
                 {
-                    return boost::property_tree::ptree();
+                    return Json();
                 }
                 uint32_t len = *reinterpret_cast<uint32_t*>(mRecvBuffer.data());
                 mRecvBuffer.resize(len);
                 boost::asio::read(mSocket,boost::asio::buffer(mRecvBuffer,mRecvBuffer.size()),ec);
                 if(ec)
                 {
-                    return boost::property_tree::ptree();
+                    return Json();
                 }
                 ss.str("");
                 ss<<std::string(mRecvBuffer.data(),mRecvBuffer.size());
-                boost::property_tree::ptree res;
-                boost::property_tree::json_parser::read_json(ss,res);
-                return res.get_child("content");
+                Json res(std::string(mRecvBuffer.data(),mRecvBuffer.size()));
+                return res.get("content",Json());
             }
         private:
             int connect(){
@@ -68,13 +66,13 @@ namespace cxFWK{
                 mSocket.connect(boost::asio::ip::tcp::endpoint(boost::asio::ip::address::from_string(mEurekaIp),mEurekaPort),ec);
                 if( ec )
                     return -1;
-                boost::property_tree::ptree pt;
-                pt.put("service name",mServiceName);
-                pt = request("query service",pt);
-                if(pt.count("service address") < 1){
+                Json json;
+                json.put("service name",mServiceName);
+                json = request("query service",json);
+                if(!json.hasKey("service address")){
                     return -1;
                 }
-                std::string serviceAddr = pt.get<std::string>("service address");
+                std::string serviceAddr = json.get("service address","");
                 char ip[20];
                 uint16_t port;
                 sscanf(serviceAddr.c_str(),"%s:%hu",ip,&port);

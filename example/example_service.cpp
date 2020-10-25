@@ -1,6 +1,7 @@
 #include <iostream>
 #include <sstream>
 #include "STPClient.h"
+#include "Json.h"
 #include "Util.h"
 int main(){
     cxFWK::STPClient c;
@@ -15,20 +16,20 @@ int main(){
         std::cout<<"connect failured!"<<std::endl;
         return 0;
     }
-    boost::property_tree::ptree pt;
-    pt.put("service name","example_service");
-    pt.put("service address","127.0.0.1:8800");
+    cxFWK::Json json;
+    json.put("service name","example_service");
+    json.put("service address","127.0.0.1:8800");
     std::cout<<"ready regsiter service"<<std::endl;
-    std::cout<<"regsiter service res:"<<cxFWK::Util::jsonToString(std::move(c.request("register service",pt)))<<std::endl;
+    std::cout<<"regsiter service res:"<<c.request("register service",json)<<std::endl;
 
-    pt.clear();
+    json.clear();
     std::cout<<"ready query services"<<std::endl;
-    std::cout<<"query services res:"<<cxFWK::Util::jsonToString(std::move(c.request("query services",pt)))<<std::endl;
+    std::cout<<"query services res:"<<c.request("query services",json)<<std::endl;
 
-    pt.clear();
-    pt.put("service name","example_service");
+    json.clear();
+    json.put("service name","example_service");
     std::cout<<"ready query services"<<std::endl;
-    std::cout<<"query service res:"<<cxFWK::Util::jsonToString(std::move(c.request("query service",pt)))<<std::endl;
+    std::cout<<"query service res:"<<c.request("query service",json)<<std::endl;
 
     return 0;
 }

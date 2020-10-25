@@ -22,6 +22,20 @@ namespace cxFWK {
         ~Json(){
             cJSON_Delete(mJson);
         }
+        bool hasKey(const std::string& k)const{
+            return cJSON_HasObjectItem(mJson,k.c_str());
+        }
+        bool isArray()const{
+            return cJSON_IsArray(mJson);
+        }
+        void push(const Json& json){
+            if(!cJSON_IsArray(mJson))
+            {
+                cJSON_Delete(mJson);
+                mJson = cJSON_CreateArray();
+            }
+            cJSON_AddItemToArray(mJson,cJSON_Duplicate( json.mJson,true));
+        }
 
         void put(const std::string& k,int v){
             cJSON_Delete(cJSON_DetachItemFromObject(mJson,k.c_str()));
@@ -48,35 +62,35 @@ namespace cxFWK {
             cJSON_AddItemToObject(mJson,k.c_str(),cJSON_Duplicate( v.mJson,true));
         }
 
-        int get(const std::string& k,int defaultVal){
+        int get(const std::string& k,int defaultVal)const{
             if(!cJSON_HasObjectItem(mJson,k.c_str()))
                 return defaultVal;
             return (int)cJSON_GetNumberValue( cJSON_GetObjectItem(mJson,k.c_str()));
         }
-        std::string get(const std::string& k,const std::string& defaultVal){
+        std::string get(const std::string& k,const std::string& defaultVal)const{
             if(!cJSON_HasObjectItem(mJson,k.c_str()))
                 return defaultVal;
             return cJSON_GetStringValue( cJSON_GetObjectItem(mJson,k.c_str()));
         }
-        std::string get(const std::string& k,const char* defaultVal){
+        std::string get(const std::string& k,const char* defaultVal)const{
             if(!cJSON_HasObjectItem(mJson,k.c_str()))
                 return defaultVal;
             return cJSON_GetStringValue( cJSON_GetObjectItem(mJson,k.c_str()));
         }
-        bool get(const std::string& k,bool defaultVal){
+        bool get(const std::string& k,bool defaultVal)const{
             if(!cJSON_HasObjectItem(mJson,k.c_str()))
                 return defaultVal;
             return cJSON_IsTrue( cJSON_GetObjectItem(mJson,k.c_str())) == true ? true : false;
         }
-        Json get(const std::string& k,const Json& defaultVal){
+        Json get(const std::string& k,const Json& defaultVal)const{
             if(!cJSON_HasObjectItem(mJson,k.c_str()))
                 return defaultVal;
             return Json(cJSON_Duplicate(cJSON_GetObjectItem(mJson,k.c_str()),true));
         }
-        bool operator==(const Json& json){
+        bool operator==(const Json& json)const{
             return cJSON_Compare(mJson,json.mJson,true);
         }
-        bool operator!=(const Json& json){
+        bool operator!=(const Json& json)const{
             return !(*this == json);
         }
         void clear(){
@@ -90,6 +104,9 @@ namespace cxFWK {
             std::ifstream in(path);
             return read(in);
         }
+        std::string toString(){
+            return cJSON_Print(mJson);
+        }
 
         void write(const std::string& path){
             std::ofstream out(path);
@@ -99,9 +116,9 @@ namespace cxFWK {
         {
             return cJSON_IsNull(mJson);
         }
-        friend std::ostream& operator<<(std::ostream& out,Json& json);
+        friend std::ostream& operator<<(std::ostream& out,const Json& json);
     };
-    std::ostream& operator<<(std::ostream& out,Json& json){
+    std::ostream& operator<<(std::ostream& out,const Json& json){
         out << std::shared_ptr<char>(cJSON_Print(json.mJson));
         return out;
     }

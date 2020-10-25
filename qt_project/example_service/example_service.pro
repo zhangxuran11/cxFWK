@@ -12,9 +12,11 @@ win32 {
 unix {
 
 }
-
+CXFWK_DIR = ../..
 INCLUDEPATH += $(BOOST_DIR) \
-                ../../cxFWK/
+                $${CXFWK_DIR}/cxFWK/ \
+                $${CXFWK_DIR}/third/cJSON/
 
 SOURCES += \
-    ../../example/example_service.cpp
+    $${CXFWK_DIR}/third/cJSON/cJSON.c \
+    $${CXFWK_DIR}/example/example_service.cpp

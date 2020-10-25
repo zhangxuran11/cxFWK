@@ -1,0 +1,23 @@
+cmake_minimum_required(VERSION 3.5)
+
+project(cxFWK )
+
+set(CMAKE_CXX_STANDARD 11)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+INCLUDE_DIRECTORIES(cxFWK $ENV{BOOST_DIR} third/cJSON/)
+add_executable(eureka third/cJSON/cJSON.c program/eureka.cpp )
+add_executable(example_service third/cJSON/cJSON.c example/example_service.cpp )
+add_executable(example_server third/cJSON/cJSON.c example/example_ws_server.cpp )
+
+IF (WIN32)
+        target_link_libraries(eureka -lpthread -lwsock32 -lws2_32)
+        target_link_libraries(example_service -lpthread -lwsock32 -lws2_32)
+        MESSAGE(STATUS "Now is windows")
+ELSEIF (APPLE)
+        MESSAGE(STATUS "Now is Apple systens.")
+ELSEIF (UNIX)
+        target_link_libraries(eureka -lpthread )
+        target_link_libraries(example_service -lpthread )
+        MESSAGE(STATUS "Now is UNIX-like OS's. Including aPPLE os x  and CygWin")
+ENDIF ()
+

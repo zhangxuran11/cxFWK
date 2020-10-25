@@ -3,39 +3,39 @@
 #include <string>
 #include <map>
 #include "Util.h"
-static std::map<std::string,boost::property_tree::ptree> services;
-static boost::property_tree::ptree registerService(const boost::property_tree::ptree& pt){
-    std::cout<<cxFWK::Util::jsonToString(pt)<<std::endl;
-    boost::property_tree::ptree res_content;
-    try{
-        std::string&& service_name = pt.get<std::string>("service name");
-        services[service_name] = pt;
+static std::map<std::string,cxFWK::Json> services;
+static cxFWK::Json registerService(const cxFWK::Json& json){
+    std::cout<<json<<std::endl;
+    cxFWK::Json res_content;
+    if(json.hasKey("service name")){
+        std::string&& service_name = json.get("service name",std::string());
+        services[service_name] = json;
         res_content.put("ack","ok"); 
     }
-    catch (...){
+    else{
         res_content.put("ack","error");
     }
     return res_content;
 }
-static boost::property_tree::ptree queryServices(const boost::property_tree::ptree& pt){
-    std::cout<<cxFWK::Util::jsonToString(pt)<<std::endl;
-    boost::property_tree::ptree pt_servers;
+static cxFWK::Json queryServices(const cxFWK::Json& json){
+    std::cout<<json<<std::endl;
+    cxFWK::Json json_servers;
     for(auto it = services.begin();it != services.end();it++)
     {
-        pt_servers.push_back(std::make_pair("",it->second));
+        json_servers.push(it->second);
     }
-    return pt_servers;
+    return json_servers;
 }
-static boost::property_tree::ptree queryService(const boost::property_tree::ptree& pt){
-    std::cout<<cxFWK::Util::jsonToString(pt)<<std::endl;
-    try{
-        std::string service_name = pt.get<std::string>("service name");
+static cxFWK::Json queryService(const cxFWK::Json& json){
+    std::cout<<json<<std::endl;
+    if(json.hasKey("service name")){
+        std::string service_name = json.get("service name","");
         if(services.count(service_name) > 0){
             return services[service_name];
         }
-    }catch(...){
+    }else{
     }
-    return boost::property_tree::ptree();
+    return cxFWK::Json();
 }
 int main(){
     cxFWK::STPServer s(8800);

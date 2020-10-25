@@ -13,10 +13,14 @@ unix {
 
 }
 
+CXFWK_DIR = ../..
+
 INCLUDEPATH += $(BOOST_DIR) \
-                ../../cxFWK/
+                $${CXFWK_DIR}/cxFWK/ \
+                $${CXFWK_DIR}/third/cJSON/
 
 SOURCES += \
-        ../../program/eureka.cpp
+        $${CXFWK_DIR}/third/cJSON/cJSON.c \
+        $${CXFWK_DIR}/program/eureka.cpp
 
 
