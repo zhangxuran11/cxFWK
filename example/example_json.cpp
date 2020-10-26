@@ -1,4 +1,6 @@
 #include <iostream>
+
+#define __IMPL__
 #include "Json.h"
 
 int main(){

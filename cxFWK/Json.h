@@ -4,7 +4,7 @@
 #include <iostream>
 #include <sstream>
 #include <fstream>
-#include "cJSON.h"
+#include "../third/cJSON/cJSON.h"
 namespace cxFWK {
     class Json{
         cJSON* mJson;
@@ -124,5 +124,8 @@ namespace cxFWK {
     }
 
 }
+#ifdef __IMPL__
+#include "../third/cJSON/cJSON.c"
+#endif//__IMPL__
 
 #endif // CXFWK_JSON_H
