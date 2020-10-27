@@ -23,7 +23,7 @@ int main(int , char* []) {
     //cxFWK::Logger::Fatal()<<"hello4";
     cxFWK::Logger::Debug()<<"hello5";
 
-    cxFWK::Logger::Info("print %v","print hello1");
+    cxFWK::Logger::Info("print %v %v %v","print hello1",123,4.5);
     cxFWK::Logger::Error("print %v","print hello2");
     cxFWK::Logger::Warn("print %v","print hello3");
     //cxFWK::Logger::Fatal("print %v","print hello4");
