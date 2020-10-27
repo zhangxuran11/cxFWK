@@ -1,5 +1,5 @@
-#ifndef ECHO_CLIENT_H
-#define ECHO_CLIENT_H
+#ifndef CXFWK_STPCLIENT_H
+#define CXFWK_STPCLIENT_H
 #include <string>
 #include <sstream>
 #include <boost/asio.hpp>
@@ -94,4 +94,4 @@ namespace cxFWK{
     };
 }
 
-#endif//ECHO_CLIENT_H
+#endif//CXFWK_STPCLIENT_H

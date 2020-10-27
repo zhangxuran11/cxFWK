@@ -1,5 +1,5 @@
-#ifndef UTIL_H
-#define UTIL_H
+#ifndef CXFWK_UTIL_H
+#define CXFWK_UTIL_H
 #include <string>
 #include <sstream>
 namespace cxFWK{
@@ -11,4 +11,4 @@ namespace cxFWK{
     };
     
 }
-#endif//UTIL_H
+#endif//CXFWK_UTIL_H

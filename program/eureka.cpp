@@ -1,8 +1,14 @@
 #include <sstream>
-#include "STPServer.h"
+
+#define __IMPL__
+#include "cxFWK/Json.h"
+
+#include "cxFWK/STPServer.h"
 #include <string>
 #include <map>
-#include "Util.h"
+#include "cxFWK/Util.h"
+
+
 static std::map<std::string,cxFWK::Json> services;
 static cxFWK::Json registerService(const cxFWK::Json& json){
     std::cout<<json<<std::endl;

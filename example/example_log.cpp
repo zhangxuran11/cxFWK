@@ -1,23 +1,8 @@
 #include<stdio.h>
+#define __IMPL__
+#include "cxFWK/Logger.h"
 
-#include <boost/log/core.hpp>
-#include <boost/log/trivial.hpp>
-#include <boost/log/expressions.hpp>
-#include <boost/log/sinks/text_file_backend.hpp>
-#include <boost/log/utility/setup/file.hpp>
-#include <boost/log/utility/setup/common_attributes.hpp>
-#include <boost/log/sources/severity_logger.hpp>
-#include <boost/log/sources/record_ostream.hpp>
 
-namespace logging = boost::log;
-namespace src = boost::log::sources;
-namespace sinks = boost::log::sinks;
-namespace keywords = boost::log::keywords;
-
-namespace logging=boost::log;
-namespace src = boost::log::sources;
-namespace sinks = boost::log::sinks;
-namespace keywords = boost::log::keywords;
 
 //void init() {
 //    logging::add_file_log
@@ -32,19 +17,16 @@ namespace keywords = boost::log::keywords;
 //}
 
 int main(int , char* []) {
-//    init();
-//    logging::add_common_attributes();
+    cxFWK::Logger::Info()<<"hello1";
+    cxFWK::Logger::Error()<<"hello2";
+    cxFWK::Logger::Warn()<<"hello3";
+    //cxFWK::Logger::Fatal()<<"hello4";
+    cxFWK::Logger::Debug()<<"hello5";
 
-//    using namespace logging::trivial;
-//    src::severity_logger<severity_level> lg;
-
-//    BOOST_LOG_SEV(lg, trace) << "A trace severity message";
-//    BOOST_LOG_SEV(lg, debug) << "A debug severity message";
-//    BOOST_LOG_SEV(lg, info) << "An informational severity message";
-//    BOOST_LOG_SEV(lg, warning) << "A warning severity message";
-//    BOOST_LOG_SEV(lg, error) << "An error severity message";
-//    BOOST_LOG_SEV(lg, fatal) << "A fatal severity message";
-
-//    system("pause");
+    cxFWK::Logger::Info("print %v","print hello1");
+    cxFWK::Logger::Error("print %v","print hello2");
+    cxFWK::Logger::Warn("print %v","print hello3");
+    //cxFWK::Logger::Fatal("print %v","print hello4");
+    cxFWK::Logger::Debug("print %v","print hello5");
     return 0;
 }

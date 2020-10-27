@@ -1,5 +1,5 @@
-#ifndef WEBSOCKET_SERVER_H
-#define WEBSOCKET_SERVER_H
+#ifndef CXFWK_WEBSOCKET_SERVER_H
+#define CXFWK_WEBSOCKET_SERVER_H
 
 #include <boost/beast/core.hpp>
 #include <boost/beast/websocket.hpp>
@@ -153,4 +153,4 @@ namespace cxFWK{
 
 }
 
-#endif//WEBSOCKET_SERVER_H
+#endif//CXFWK_WEBSOCKET_SERVER_H

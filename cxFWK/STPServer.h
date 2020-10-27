@@ -1,5 +1,5 @@
-#ifndef ECHO_SERVER_H
-#define ECHO_SERVER_H
+#ifndef CXFWK_STPSERVER_H
+#define CXFWK_STPSERVER_H
 #include <vector>
 #include <map>
 #include "Json.h"
@@ -121,4 +121,4 @@ namespace cxFWK{
         std::map<std::string,std::function<Json (const Json&)> > mProcesserSet;
     };
 }
-#endif  //ECHO_SERVER_H
+#endif  //CXFWK_STPSERVER_H

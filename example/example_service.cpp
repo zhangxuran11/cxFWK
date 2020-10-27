@@ -1,8 +1,10 @@
 #include <iostream>
 #include <sstream>
-#include "STPClient.h"
-#include "Json.h"
-#include "Util.h"
+
+#define __IMPL__
+#include "cxFWK/Json.h"
+#include "cxFWK/STPClient.h"
+#include "cxFWK/Util.h"
 int main(){
     cxFWK::STPClient c;
     
