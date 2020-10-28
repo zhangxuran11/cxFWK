@@ -1,8 +1,13 @@
 #ifndef CXFWK_LOGGER_H
 #define CXFWK_LOGGER_H
+#define ELPP_DEBUG_ASSERT_FAILURE
 #define ELPP_VARIADIC_TEMPLATES_SUPPORTED
 #include "../third/easyloggingpp/easylogging++.h"
 #include <string>
+#include <sstream>
+#include <map>
+#include <sys/inotify.h>
+#include <unistd.h>
 namespace cxFWK {
     class Logger{
         std::string mName;
@@ -52,16 +57,92 @@ namespace cxFWK {
         Stream mFatalStream;
         Stream mDebugStream;
         static Logger sDefaultLogger;
+        std::string mConfFile;
+        int mInotifyFd;
+        static void preRollOutCallback(const char* path,size_t ){
+            static std::map<std::string,int> rollCounts;
+            if(rollCounts.count(path) < 1){
+                rollCounts[path] = 0;
+            }
+            std::stringstream ss;
+            ss<<"mv "<<path<<" "<<path<<"."<< ++rollCounts[path];
+            system(ss.str().c_str());
+
+        }
     public:
-        Logger(const std::string& name):mName(name),mInfoStream(name,Level_Info),mWarnStream(name,Level_Warn),mErrorStream(name,Level_Error),mFatalStream(name,Level_Fatal),mDebugStream(name,Level_Debug){
+        Logger(const std::string& name):mName(name),mInfoStream(name,Level_Info),mWarnStream(name,Level_Warn),mErrorStream(name,Level_Error),mFatalStream(name,Level_Fatal),mDebugStream(name,Level_Debug),mInotifyFd(-1){
+            if(!el::Loggers::hasFlag(el::LoggingFlag::StrictLogFileSizeCheck))
+                el::Loggers::addFlag(el::LoggingFlag::StrictLogFileSizeCheck);
             el::Configurations defaultConf;
             defaultConf.setToDefault();
 
+            el::Helpers::installPreRollOutCallback(preRollOutCallback);
             // 重新设置GLOBAL级别的配置项FORMAT的值
             defaultConf.setGlobally(
                 el::ConfigurationType::Format, "%datetime %level %msg");
             /// 重新设置配置
             el::Loggers::reconfigureLogger(mName.data(), defaultConf);
+        }
+        ~Logger(){
+            el::Helpers::uninstallPreRollOutCallback();
+        }
+        void reconfigure(const std::string& fileName){
+            el::Configurations conf(fileName);
+            if(conf.empty()){
+                return ;
+            }
+            el::Loggers::reconfigureLogger("default", conf);
+            if(fileName != mConfFile){
+                mConfFile = fileName;
+                if(mInotifyFd > -1){
+                    close(mInotifyFd);
+                }
+                mInotifyFd = inotify_init1(IN_NONBLOCK | IN_CLOEXEC);
+                if(inotify_add_watch(mInotifyFd, mConfFile.data(), IN_MODIFY | IN_DELETE_SELF) < 0){
+                    close(mInotifyFd);
+                    mInotifyFd = -1;
+                }
+            }
+        }
+        void checkConfFileChangedAndApply(){
+            if(mInotifyFd == -1)
+                return;
+            uint8_t buf[1024] = {0};
+            bool reconf = false;
+            std::string confFile;
+            int len = 0;
+            while ( (len = read(mInotifyFd, buf, sizeof(buf) - 1)) > 0 )
+            {
+                int nread = 0;
+                struct inotify_event *event;
+                while ( len > 0 )
+                {
+                  event = (struct inotify_event *)&buf[nread];
+                  if(event->mask & IN_MODIFY){
+                      reconf = true;
+                  }
+                  if(event->mask & IN_DELETE_SELF){
+                      reconf = true;
+                      confFile = mConfFile;
+                      mConfFile = "";
+                      close(mInotifyFd);
+                      mInotifyFd = -1;
+                  }
+                  nread = nread + sizeof(struct inotify_event) + event->len;
+                  len   = len - sizeof(struct inotify_event) - event->len;
+                }
+            }
+            if(reconf){
+                reconfigure(confFile);
+            }
+
+
+        }
+        static void Reconfigure(const std::string& fileName){
+            return sDefaultLogger.reconfigure(fileName);
+        }
+        static void CheckConfFileChangedAndApply(){
+            return sDefaultLogger.checkConfFileChangedAndApply();
         }
 
         Stream& info(){

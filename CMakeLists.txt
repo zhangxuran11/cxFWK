@@ -21,6 +21,7 @@ ELSEIF (APPLE)
 ELSEIF (UNIX)
         target_link_libraries(eureka -lpthread )
         target_link_libraries(example_service -lpthread )
+        target_link_libraries(example_ws_server -lpthread )
         MESSAGE(STATUS "Now is UNIX-like OS's. Including aPPLE os x  and CygWin.")
 ENDIF ()
 
