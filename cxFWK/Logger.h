@@ -2,6 +2,10 @@
 #define CXFWK_LOGGER_H
 #define ELPP_DEBUG_ASSERT_FAILURE
 #define ELPP_VARIADIC_TEMPLATES_SUPPORTED
+
+#define ELPP_THREAD_SAFE
+#define ELPP_NO_LOG_TO_FILE
+#define ELPP_NO_DEFAULT_LOG_FILE
 #include "../third/easyloggingpp/easylogging++.h"
 #include <string>
 #include <sstream>
@@ -10,17 +14,21 @@
 #include <unistd.h>
 namespace cxFWK {
     class Logger{
-        std::string mName;
-        static void init(){
-
-        }
+    public:
         enum Level{
+            Level_Debug,
             Level_Info,
             Level_Warn,
             Level_Error,
-            Level_Fatal,
-            Level_Debug
-        };
+            Level_Fatal
+        } mLevel = Level_Info;
+    private:
+        std::string mName;
+
+        static void init(){
+
+        }
+
         class Stream{
             std::string mLoggerName;
             Level mLevel;
@@ -75,6 +83,27 @@ namespace cxFWK {
                 el::Loggers::addFlag(el::LoggingFlag::StrictLogFileSizeCheck);
             el::Configurations defaultConf;
             defaultConf.setToDefault();
+            defaultConf.setGlobally(el::ConfigurationType::Enabled, std::string("true"));
+            //setGlobally(ConfigurationType::Filename, std::string(base::consts::kDefaultLogFile), true);
+//          #if defined(ELPP_NO_LOG_TO_FILE)
+//            setGlobally(ConfigurationType::ToFile, std::string("false"), true);
+//          #else
+//            setGlobally(ConfigurationType::ToFile, std::string("true"), true);
+//          #endif // defined(ELPP_NO_LOG_TO_FILE)
+            defaultConf.setGlobally(el::ConfigurationType::ToStandardOutput, std::string("true"));
+            defaultConf.setGlobally(el::ConfigurationType::SubsecondPrecision, std::string("3"));
+            defaultConf.setGlobally(el::ConfigurationType::PerformanceTracking, std::string("true"));
+            defaultConf.setGlobally(el::ConfigurationType::MaxLogFileSize, std::string("0"));
+            defaultConf.setGlobally(el::ConfigurationType::LogFlushThreshold, std::string("0"));
+
+            defaultConf.setGlobally(el::ConfigurationType::Format, std::string("%datetime %level [%logger] %msg"));
+            defaultConf.set(el::Level::Debug, el::ConfigurationType::Format,
+                std::string("%datetime %level [%logger] [%user@%host] [%func] [%loc] %msg"));
+            // INFO and WARNING are set to default by Level::Global
+            defaultConf.set(el::Level::Error, el::ConfigurationType::Format, std::string("%datetime %level [%logger] %msg"));
+            defaultConf.set(el::Level::Fatal, el::ConfigurationType::Format, std::string("%datetime %level [%logger] %msg"));
+            defaultConf.set(el::Level::Verbose, el::ConfigurationType::Format, std::string("%datetime %level-%vlevel [%logger] %msg"));
+            defaultConf.set(el::Level::Trace, el::ConfigurationType::Format, std::string("%datetime %level [%logger] [%func] [%loc] %msg"));
 
             el::Helpers::installPreRollOutCallback(preRollOutCallback);
             // 重新设置GLOBAL级别的配置项FORMAT的值
@@ -85,6 +114,27 @@ namespace cxFWK {
         }
         ~Logger(){
             el::Helpers::uninstallPreRollOutCallback();
+        }
+        static void setDefaultLoggerLevel(Level lvl){
+            sDefaultLogger.setLevel(lvl);
+        }
+        void setLevel(Level lvl){
+            switch (lvl) {
+            case Level_Debug:
+                break;
+            case Level_Info:
+                break;
+            case Level_Warn:
+            {
+                el::Configurations *configurations = el::Loggers::getLogger(mName)->configurations();
+                configurations->set(el::Level::Debug,el::ConfigurationType::Enabled,"false");
+                configurations->set(el::Level::Info,el::ConfigurationType::Enabled,"false");
+                el::Loggers::reconfigureLogger(mName,*configurations);
+                break;
+            }
+            default:
+                break;
+            }
         }
         void reconfigure(const std::string& fileName){
             el::Configurations conf(fileName);
@@ -210,6 +260,10 @@ namespace cxFWK {
         inline static void Warn(const char* s, const T& value, const Args&... args){
             sDefaultLogger.warn(s, value, args...);
         }
+        inline static void Warn(const char* s){
+            Warn("%v%v",s,"");
+        }
+
         template <typename T, typename... Args>
         inline static void Error(const char* s, const T& value, const Args&... args){
             sDefaultLogger.error(s, value, args...);
